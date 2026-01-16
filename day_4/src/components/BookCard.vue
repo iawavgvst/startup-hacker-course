@@ -1,77 +1,101 @@
 <template>
     <div class="book-card">
         <div class="card-content">
-        <h2>{{ book.title }}</h2>
+            <h2>{{ book.title }}</h2>
+            <div class="icons">
+                <button @click="openEditForm">✏️</button>
+            <BookEditForm
+                :is-visible="showEditForm"
+                :model-value="book"
+                @save="handleSave"
+                @cancel="closeEditForm"
+            />
+            <button @click="handleDelete">🗑️</button>
+            </div>
             <p><strong>Author: </strong>{{ book.author }}</p>
             <p><strong>Description: </strong>{{ book.description }}</p>
-            <p><strong>Genre: </strong> {{ book.genre }}</p>
-                <div class="interactive-stars-container">
-                    <strong>Rating: </strong>
+            <p><strong>Genre: </strong>{{ book.genre }}</p>
+            <div class="interactive-stars-container">
+                <strong>Rating: </strong>
                 <div class="stars-wrapper">
-                    <div v-for="star in 5"
+                    <div
+                        v-for="star in 5"
                         :key="star"
                         class="star"
                         :class="{
-                        'active': star <= currentRating,
-                        'inactive': star > currentRating,
-                        'clickable': !ratingLocked
-                      }"
-                        @click="setRating(star)">{{ star <= currentRating ? '⭐' : '☆' }}
+                            'active': star <= currentRating,
+                            'inactive': star > currentRating,
+                            'clickable': !ratingLocked
+                        }"
+                        @click="setRating(star)"
+                    >
+                    {{ star <= currentRating ? '⭐' : '☆' }}
                     </div>
                 </div>
-                    <span class="rating-value">{{ currentRating.toFixed(1) }}</span>
-                    <span v-if="ratingLocked" class="rating-locked">✓</span>
+                <span class="rating-value">{{ currentRating.toFixed(1) }}</span>
+                <span v-if="ratingLocked" class="rating-locked">✓</span>
+            </div>
+            <p><strong>There's an age warning (18+): </strong> {{ book.is18Plus }}</p>
+            <div class="cover-container">
+                <div class="cover-image-wrapper">
+                    <img :src="book.cover" alt="Book Title" class="book-cover" />
+                    <div
+                        class="cover-star"
+                        :class="{ 'has-rating': hasRating }"
+                    >
+                        {{ hasRating ? '⭐' : '☆' }}
+                        <span class="cover-rating-value">
+                            {{ hasRating ? currentRating.toFixed(1) : '0.0' }}
+                        </span>
+                    </div>
                 </div>
-                    <p><strong>There's an age warning (18+): </strong> {{ book.is18Plus }}</p>
-                </div>
-                <div class="cover-container">
-        <div class="cover-image-wrapper">
-            <img :src="book.cover" alt="Book Title" class="book-cover"/>
-        <div class="cover-star" :class="{ 'has-rating': hasRating > 0 }">
-            {{ hasRating > 0 ? '⭐' : '☆' }}
-            <span class="cover-rating-value">
-              {{ hasRating > 0 ? currentRating.toFixed(1) : '—' }}
-            </span>
-        </div>
-        </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, defineProps, computed, onMounted} from 'vue';
+import {ref, defineProps, computed, onMounted, defineEmits} from 'vue';
+import BookEditForm from './BookEditForm.vue';
 
 const props = defineProps({
     book: Object,
 });
 
-//  захотелось вместо звездочек сделать фазы солнца, чтобы было цветное
-// const renderStars = (ranking) => {
-//   const fullStars = Math.floor(ranking);
-//   const halfStar = ranking % 1 >= 0.5;
-//   let stars = '';
-//
-//   for (let i = 0; i < fullStars; i++) {
-//     stars += '🌕';
-//   }
-//
-//   if (halfStar) {
-//     stars += '🌗';
-//   }
-//
-//   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-//   for (let i = 0; i < emptyStars; i++) {
-//     stars += '🌑';
-//   }
-//
-//   return stars;
-// };
+const emit = defineEmits(['update', 'delete']);
+
+const showEditForm = ref(false);
+
+const openEditForm = () => {
+    showEditForm.value = true;
+};
+
+const closeEditForm = () => {
+    showEditForm.value = false;
+};
+
+const handleModelUpdate = (updatedData) => {
+    console.log('Model updated:', updatedData);
+};
+
+const handleSave = (updatedBook) => {
+    console.log('handleSave', updatedBook);
+    emit('update', updatedBook);
+    closeEditForm();
+};
+
+const handleDelete = () => {
+    if (confirm(`Are you sure you want to delete "${props.book.title}"?`)) {
+        emit('delete', props.book.id);
+    }
+};
 
 const currentRating = ref(props.book.ranking || 0);
 const ratingLocked = ref(false);
 
+// немного поправила - сделала >=1
 const hasRating = computed(() => {
-    return currentRating.value > 0;
+    return currentRating.value >= 1;
 });
 
 const setRating = (rating) => {
@@ -107,13 +131,32 @@ onMounted(() => {
     margin: 0;
 }
 
+h2 {
+    font-size: 25px;
+    margin-top: 13px;
+    margin-bottom: 13px;
+}
+
+.icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icons button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+}
+
 img {
-     width: 155px;
-     height: 230px;
-     border-radius: 8px;
-     align-items: flex-end;
-     object-fit: cover;
- }
+    width: 155px;
+    height: 230px;
+    border-radius: 8px;
+    align-items: flex-end;
+    object-fit: cover;
+}
 
 .interactive-stars-container {
     margin: 10px 0;

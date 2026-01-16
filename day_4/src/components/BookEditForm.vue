@@ -1,46 +1,73 @@
 <template>
-    <div class="book-form-overlay" v-if="isVisible" @click.self="closeForm">
-        <div class="book-form-container">
+    <div class="book-edit-overlay" v-if="isVisible" @click.self="cancel">
+        <div class="book-edit-container">
             <div class="form-header">
-                <h2>Add New Book</h2>
-                <button class="close-btn" @click="closeForm">×</button>
+              <h2>Edit Book</h2>
+              <button class="close-btn" @click="cancel">×</button>
             </div>
-        <form @submit.prevent="submitForm" class="book-form">
-            <div class="form-group">
-                <label for="title">Book Title</label>
-                <input type="text" id="title" v-model="formData.title" placeholder="Enter book title"/>
-            </div>
-            <div class="form-group">
-                <label for="author">Author</label>
-                <input type="text" id="author" v-model="formData.author" placeholder="Enter author name"/>
-            </div>
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" v-model="formData.description" placeholder="Enter book description">
-                </textarea>
-            </div>
-            <div class="form-group">
-                <label for="genre">Genre</label>
-                <select id="genre" v-model="formData.genre">
+            <form @submit.prevent="submitForm" class="book-edit-form">
+                <div class="form-group">
+                    <label for="edit-title">Book Title</label>
+                    <input
+                        type="text"
+                        id="edit-title"
+                        v-model="editData.title"
+                        placeholder="Enter book title"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="edit-author">Author</label>
+                    <input
+                        type="text"
+                        id="edit-author"
+                        v-model="editData.author"
+                        placeholder="Enter author name"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea
+                        id="edit-description"
+                        v-model="editData.description"
+                        placeholder="Enter book description"
+                    ></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-genre">Genre</label>
+                    <select
+                        id="edit-genre"
+                        v-model="editData.genre"
+                        @change="updateModelValue"
+                    >
                     <option v-for="genre in genres" :key="genre" :value="genre">{{ genre }}</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="cover">Cover of Book</label>
-                <input type="text" id="cover" v-model="formData.cover" placeholder="Enter image URL for book cover"/>
-            </div>
-            <div class="form-group checkbox-group">
-                  <label class="checkbox-label">
-                  <input type="checkbox" v-model="formData.is18Plus" class="checkbox"/>
-                      <span class="checkbox-custom"></span>
-                      <span class="checkbox-text">There's an age warning (18+)</span>
-                  </label>
-            </div>
-            <div class="form-actions">
-                  <button type="button" class="btn btn-cancel" @click="cancel">Cancel</button>
-                  <button type="submit" class="btn btn-submit" @click="resetForm">Add Book</button>
-            </div>
-        </form>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-cover">Cover of Book</label>
+                    <input
+                        type="text"
+                        id="edit-cover"
+                        v-model="editData.cover"
+                        placeholder="Enter image URL for book cover"
+                    />
+                </div>
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            v-model="editData.is18Plus"
+                            class="checkbox"
+                            @change="updateModelValue"
+                        />
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text">There's an age warning (18+)</span>
+                    </label>
+                  </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" @click="cancel">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </template>
@@ -52,12 +79,17 @@ const props = defineProps({
     isVisible: {
         type: Boolean,
         default: false
+    },
+    modelValue: {
+        type: Object,
+        default: () => ({})
     }
 });
 
-const emit = defineEmits(['add-book', 'close']);
+const emit = defineEmits(['save', 'cancel']);
 
-const formData = ref({
+const editData = ref({
+    id: '',
     title: '',
     author: '',
     description: '',
@@ -73,7 +105,7 @@ const genres = [
     "Dystopia",
     "Fantasy",
     "Romance novel",
-    "Short stories ",
+    "Short stories",
     "Horror",
     "Classic",
     "Fairy tale",
@@ -89,49 +121,27 @@ const genres = [
     "Science fiction",
 ];
 
+watch(
+    () => props.modelValue,
+        (newVal) => {
+            if (newVal && Object.keys(newVal).length) {
+                editData.value = { ...newVal };
+            }
+      },
+    {immediate: true}
+);
+
 const submitForm = () => {
-    const newBook = {
-        id: Date.now(),
-        title: formData.title.trim(),
-        author: formData.author.trim(),
-        description: formData.description.trim(),
-        genre: formData.genre,
-        cover: formData.cover.trim(),
-        is18Plus: formData.is18Plus,
-    };
-
-    emit('add-book', newBook);
-
-    resetForm();
-};
-
-const resetForm = () => {
-    formData.value.title = '';
-    formData.value.author = '';
-    formData.value.description = '';
-    formData.value.genre = '';
-    formData.value.cover = '';
-    formData.value.is18Plus = false;
+    emit('save', { ...editData.value });
 };
 
 const cancel = () => {
-  resetForm()
-  emit('close')
-}
-
-const closeForm = () => {
-    emit('close');
+    emit('cancel');
 };
-
-watch(() => props.isVisible, (newVal) => {
-    if (!newVal) {
-        resetForm();
-    }
-});
 </script>
 
 <style scoped>
-.book-form-overlay {
+.book-edit-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -145,7 +155,7 @@ watch(() => props.isVisible, (newVal) => {
     animation: fadeIn 0.3s ease;
 }
 
-.book-form-container {
+.book-edit-container {
     background-color: white;
     border-radius: 8px;
     width: 90%;
@@ -158,13 +168,13 @@ watch(() => props.isVisible, (newVal) => {
 
 .form-header {
     position: relative;
-    justify-content: center;
     display: flex;
-    align-items: center;
     padding: 20px;
     border-bottom: 1px solid #e0e0e0;
     background-color: #f8f9fa;
     border-radius: 12px 12px 0 0;
+    justify-content: center;
+    align-items: center;
 }
 
 h2 {
@@ -196,7 +206,7 @@ h2 {
     color: #333;
 }
 
-.book-form {
+.book-edit-form {
     padding: 20px;
 }
 
@@ -220,7 +230,7 @@ h2 {
     font-size: 15px;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
-    font-family: "Tahoma", "Arial", "Arabic Transparent",sans-serif;
+    font-family: "Tahoma", "Arial", "Arabic Transparent", sans-serif;
 }
 
 .form-group input[type="text"]:focus,
@@ -229,6 +239,7 @@ h2 {
     outline: none;
     border-color: #005bb5;
     box-shadow: 0 0 0 2px rgba(0, 91, 181, 0.2);
+    font-family: "Tahoma", "Arial", "Arabic Transparent",sans-serif;
 }
 
 .form-group textarea {
@@ -241,25 +252,11 @@ h2 {
     font-size: 15px;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
-    font-family: "Tahoma", "Arial", "Arabic Transparent",sans-serif;
-}
-
-.cover-preview p {
-    margin-bottom: 5px;
-    font-size: 0.875rem;
-    color: #666;
-}
-
-.cover-preview img {
-    max-width: 100px;
-    max-height: 150px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    object-fit: cover;
+    font-family: "Tahoma", "Arial", "Arabic Transparent", sans-serif;
 }
 
 .checkbox-group {
-  margin-top: 25px;
+    margin-top: 25px;
 }
 
 .checkbox {
@@ -271,8 +268,6 @@ h2 {
 .checkbox-custom {
     border-radius: 8px;
     position: relative;
-    align-items: center;
-    vertical-align: center;
     display: inline-block;
     padding: 10px 1px;
 }
@@ -347,7 +342,7 @@ h2 {
 }
 
 @media (max-width: 600px) {
-    .book-form-container {
+    .book-edit-container {
         width: 95%;
         margin: 10px;
     }
@@ -359,5 +354,5 @@ h2 {
     .btn {
         width: 100%;
     }
-}
+  }
 </style>

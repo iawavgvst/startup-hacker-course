@@ -10,20 +10,30 @@
                 v-for="book in books"
                 :key="book.id"
                 :book="book"
+                @update="updateBook"
+                @delete="deleteBook"
             />
         </div>
-          <BookForm
-              :is-visible="showBookForm"
-              @add-book="addNewBook"
-              @close="closeBookForm"
-          />
-      </div>
+        <Dialog
+            v-if="showBookForm"
+            @close="closeBookForm">
+                <template #title>
+                  <h2 style="color: darkred;">{{ addNewBook ? 'Add New Book' : 'BYEEE'}}</h2>
+                </template>
+                <BookForm
+                    :is-visible="showBookForm"
+                    @add-book="addNewBook"
+                    @close="closeBookForm"
+                />
+        </Dialog>
+    </div>
 </template>
 
 <script setup>
 import {ref} from 'vue';
 import BookCard from './components/BookCard.vue';
 import BookForm from './components/BookForm.vue';
+import Dialog from './components/Dialog.vue';
 
 const showBookForm = ref(false);
 const openBookForm = () => {
@@ -36,6 +46,20 @@ const closeBookForm = () => {
 
 const addNewBook = (newBook) => {
     books.value.push(newBook);
+};
+
+const updateBook = (updatedBook) => {
+  const index = books.value.findIndex(book => book.id === updatedBook.id);
+  if (index !== -1) {
+    books.value[index] = updatedBook;
+  }
+};
+
+const deleteBook = (bookId) => {
+  const index = books.value.findIndex(book => book.id === bookId);
+  if (index !== -1) {
+    books.value.splice(index, 1);
+  }
 };
 
 const books = ref([
