@@ -19,8 +19,8 @@
         </div>
     </div>
     <div class="book-list">
-        <BookCard v-for="book in books" :key="book.id" :book="book"
-            v-bind:update:rating="updateRating" @edit="editBook" @remove="removeBook" />
+        <BookCard v-for="book in books" :key="book.id" :book="book" v-bind:update:rating="updateRating"
+                  @edit="editBook" @remove="removeBook" @update:rating="updateRating" />
     </div>
 </div>
 </template>
@@ -43,8 +43,10 @@ function updateRating(id, rating) {
     return book;
     });
 }
+
+// нужно новый массив присвоить обратно books.value
 function removeBook(id) {
-    books.value.filter((book) => book.id !== id);
+    books.value = books.value.filter((book) => book.id !== id);
 }
 function editBook(id) {
     currentBook.value = books.value.find((book) => book.id === id);
@@ -59,16 +61,21 @@ function saveBook(data) {
     }
 }
 
+// убрала return data везде,
+// data делала так, что массив состоял из одинаковых данных при изменении
 function updateBook(data) {
     books.value = books.value.map((m) => {
-    if (m.id === data.id) {
-        data.rating = m.rating;
-        return data;
-    }
-    return data;
+        if (m.id === data.id) {
+            return {
+              ...m,
+              ...data
+            };
+        }
+        return m;
     });
     hideForm();
 }
+
 function addBook(data) {
     books.value.push(data);
     hideForm();
