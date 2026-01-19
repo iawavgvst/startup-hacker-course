@@ -4,13 +4,16 @@
             <h2>{{ book.title }}</h2>
             <div class="icons">
                 <button @click="openEditForm">✏️</button>
-            <BookEditForm
+                <button @click="handleDelete">🗑️</button>
+            <UniversalBookForm
+                v-if="showEditForm"
                 :is-visible="showEditForm"
-                :model-value="book"
-                @save="handleSave"
+                :book-to-edit="book"
+                mode="edit"
+                @save-book="handleSave"
+                @close="closeEditForm"
                 @cancel="closeEditForm"
             />
-            <button @click="handleDelete">🗑️</button>
             </div>
             <p><strong>Author: </strong>{{ book.author }}</p>
             <p><strong>Description: </strong>{{ book.description }}</p>
@@ -38,7 +41,7 @@
             <p><strong>There's an age warning (18+): </strong> {{ book.is18Plus }}</p>
             <div class="cover-container">
                 <div class="cover-image-wrapper">
-                    <img :src="book.cover" alt="Book Title" class="book-cover" />
+                <img :src="book.cover" alt="Book Cover" class="book-cover" />
                     <div
                         class="cover-star"
                         :class="{ 'has-rating': hasRating }"
@@ -55,8 +58,8 @@
 </template>
 
 <script setup>
-import {ref, defineProps, computed, onMounted, defineEmits, watch} from 'vue';
-import BookEditForm from './BookEditForm.vue';
+import { ref, defineProps, computed, onMounted, defineEmits, watch } from 'vue';
+import UniversalBookForm from './UniversalBookForm.vue';
 
 const props = defineProps({
     book: Object,
@@ -74,10 +77,6 @@ const closeEditForm = () => {
     showEditForm.value = false;
 };
 
-const handleModelUpdate = (updatedData) => {
-    console.log('Model updated:', updatedData);
-};
-
 const handleSave = (updatedBook) => {
     console.log('handleSave', updatedBook);
     emit('update', updatedBook);
@@ -93,7 +92,6 @@ const handleDelete = () => {
 const currentRating = ref(props.book.ranking || 0);
 const ratingLocked = ref(false);
 
-// немного поправила - сделала >=1
 const hasRating = computed(() => {
     return currentRating.value >= 1;
 });
@@ -108,11 +106,11 @@ const setRating = (rating) => {
 
 watch(() => props.book.ranking, (newRanking) => {
     currentRating.value = newRanking;
-        if (newRanking > 0) {
-            ratingLocked.value = true;
-        } else {
-            ratingLocked.value = false;
-        }
+    if (newRanking > 0) {
+        ratingLocked.value = true;
+    } else {
+        ratingLocked.value = false;
+    }
 });
 
 onMounted(() => {

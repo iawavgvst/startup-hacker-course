@@ -8,6 +8,10 @@
                             <h3>Заголовок</h3>
                         </slot>
                     </div>
+                  <button class="close-btn" @click="closeDialog">×</button>
+                </div>
+                <div class="dialog-content">
+                    <slot></slot>
                 </div>
             </div>
         </div>
@@ -15,7 +19,7 @@
 </template>
 
 <script setup>
-import {defineProps, defineEmits} from 'vue';
+import { defineProps, defineEmits } from 'vue';
 
 defineProps({
     show: {
@@ -68,40 +72,43 @@ const closeDialog = () => {
     border-radius: 12px 12px 0 0;
 }
 
-/* для transition */
-.dialog-slide-fade-enter-active .dialog-form,
-.dialog-slide-fade-leave-active .dialog-form {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dialog-slide-fade-enter-from .dialog-form,
-.dialog-slide-fade-leave-to .dialog-form {
-  opacity: 0;
-}
-
-.dialog-slide-fade-enter-from .dialog-form {
-  transform: translateY(30px);
-}
-
-.dialog-slide-fade-leave-to .dialog-form {
-  transform: translateY(30px);
-}
-
-.dialog-slide-fade-enter-to .dialog-form,
-.dialog-slide-fade-leave-from .dialog-form {
-  transform: translateY(0);
-}
-
-.dialog-slide-fade-enter-from .dialog-form {
-  background-color: rgba(0, 0, 0, 0);
+.dialog-slide-fade-enter-active .dialog-form-overlay,
+.dialog-slide-fade-leave-active .dialog-form-overlay {
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dialog-slide-fade-enter-to .dialog-form-overlay,
 .dialog-slide-fade-leave-from .dialog-form-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
+.dialog-slide-fade-enter-from .dialog-form-overlay,
 .dialog-slide-fade-leave-to .dialog-form-overlay {
-  background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.dialog-slide-fade-enter-active .dialog-form,
+.dialog-slide-fade-leave-active .dialog-form {
+  transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dialog-slide-fade-enter-from .dialog-form {
+    transform: translateY(100px) scale(0.95);
+    opacity: 0;
+}
+
+.dialog-slide-fade-enter-to .dialog-form {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.dialog-slide-fade-leave-from .dialog-form {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.dialog-slide-fade-leave-to .dialog-form {
+    transform: translateY(100px) scale(0.95);
+    opacity: 0;
 }
 </style>

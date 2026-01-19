@@ -1,6 +1,5 @@
 <template>
     <div class="app">
-      <!--<FontAwesomeIcon icon="star" />-->
         <div class="btn-container">
             <h1>Books List</h1>
             <button class="btn" @click="openBookForm">ADD</button>
@@ -20,30 +19,49 @@
             v-if="showBookForm"
             @close="closeBookForm">
                 <template #title>
-                  <h2 style="color: darkred;">{{ addNewBook ? 'Add New Book' : 'BYEEE'}}</h2>
+                    <h2>{{ isEditMode ? 'Edit Book' : 'Add New Book' }}</h2>
                 </template>
-                <BookForm
-                    :is-visible="showBookForm"
-                    @add-book="addNewBook"
-                    @close="closeBookForm"
-                />
+            <UniversalBookForm
+                :is-visible="showBookForm"
+                :book-to-edit="bookToEdit"
+                :mode="isEditMode ? 'edit' : 'create'"
+                @save-book="handleSaveBook"
+                @close="closeBookForm"
+                @cancel="closeBookForm"
+            />
         </Dialog>
     </div>
 </template>
 
 <script setup>
-import {ref} from 'vue';
+import { ref } from 'vue';
 import BookCard from './components/BookCard.vue';
-import BookForm from './components/BookForm.vue';
+import UniversalBookForm from './components/UniversalBookForm.vue';
 import Dialog from './components/Dialog.vue';
 
 const showBookForm = ref(false);
+const isEditMode = ref(false);
+const bookToEdit = ref(null);
+
 const openBookForm = () => {
+    isEditMode.value = false;
+    bookToEdit.value = null;
     showBookForm.value = true;
 };
 
 const closeBookForm = () => {
     showBookForm.value = false;
+    isEditMode.value = false;
+    bookToEdit.value = null;
+};
+
+const handleSaveBook = (book) => {
+    if (isEditMode.value) {
+        updateBook(book);
+    } else {
+        addNewBook(book);
+    }
+    closeBookForm();
 };
 
 const addNewBook = (newBook) => {
@@ -51,34 +69,33 @@ const addNewBook = (newBook) => {
 };
 
 const updateBook = (updatedBook) => {
-  const index = books.value.findIndex(book => book.id === updatedBook.id);
-  if (index !== -1) {
-    books.value[index] = updatedBook;
-  }
+    const index = books.value.findIndex(book => book.id === updatedBook.id);
+    if (index !== -1) {
+        books.value[index] = updatedBook;
+    }
 };
 
 const deleteBook = (bookId) => {
-  const index = books.value.findIndex(book => book.id === bookId);
-  if (index !== -1) {
-    books.value.splice(index, 1);
-  }
+    const index = books.value.findIndex(book => book.id === bookId);
+    if (index !== -1) {
+        books.value.splice(index, 1);
+    }
 };
 
-// забыла добавить сброс рейтинга, исправляюсь
 const resetAllRatings = () => {
-  if (confirm('Are you sure you want to reset all ratings to 0?')) {
-    books.value.forEach(book => {
-      book.ranking = 0;
-    });
-    console.log('All ratings have been reset to 0');
-  }
+    if (confirm('Are you sure you want to reset all ratings to 0?')) {
+        books.value.forEach(book => {
+            book.ranking = 0;
+        });
+        console.log('All ratings have been reset to 0');
+    }
 };
 
 const handleRatingChange = (bookId, newRating) => {
-  const book = books.value.find(b => b.id === bookId);
-  if (book) {
-    book.ranking = newRating;
-  }
+    const book = books.value.find(b => b.id === bookId);
+    if (book) {
+        book.ranking = newRating;
+    }
 };
 
 const books = ref([
