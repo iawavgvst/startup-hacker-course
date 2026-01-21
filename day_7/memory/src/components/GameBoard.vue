@@ -5,14 +5,16 @@
             :key="card.id"
             class="s-gameboard-card-wrapper"
             @click="handleCardClick(card)"
-            v-show="!card.isRemoved"
         >
-        <Card
-            :value="card.value"
-            :is-flipped="card.isFlipped"
-            :is-matched="card.isMatched"
-            :is-clickable="!card.isMatched && !card.isFlipped && !gameFinished"
-        />
+            <Card
+                v-if="!card.isRemoved || gameFinished"
+                :value="card.value"
+                :is-flipped="card.isFlipped"
+                :is-matched="card.isMatched"
+                :is-clickable="!card.isMatched && !card.isFlipped && !gameFinished && !card.isRemoved"
+                :is-visible="!card.isRemoved || gameFinished"
+            />
+            <div v-else class="s-gameboard-empty-slot"></div>
         </div>
     </div>
 </template>
@@ -78,7 +80,7 @@ const shuffleArray = (array) => {
 }
 
 const handleCardClick = (clickedCard) => {
-    if (clickedCard.isMatched || clickedCard.isFlipped || props.gameFinished) return
+    if (clickedCard.isMatched || clickedCard.isFlipped || props.gameFinished || clickedCard.isRemoved) return
 
     emit('card-click')
 
@@ -101,14 +103,30 @@ const handleCardClick = (clickedCard) => {
             setTimeout(() => {
                 const matchedValue = firstCard.value
 
-                cards.value = cards.value.filter(card => card.value !== matchedValue)
+                cards.value = cards.value.map(card => {
+                    if (card.value === matchedValue) {
+                        return {
+                            ...card,
+                            isMatched: true,
+                            isRemoved: true
+                        }
+                    }
+                    return card
+                })
 
                 matchedPairs.value++
                 flippedCards.value = []
 
                 const config = difficultyConfig[props.difficulty] || difficultyConfig.medium
                 if (matchedPairs.value === config.pairs) {
-                  emit('game-finish')
+                    setTimeout(() => {
+                        cards.value = cards.value.map(card => ({
+                            ...card,
+                            isRemoved: false,
+                            isFlipped: true
+                        }))
+                        emit('game-finish')
+                    }, 500)
                 }
             }, 500)
         } else {
@@ -172,6 +190,15 @@ watch(() => props.difficulty, initializeGame)
     aspect-ratio: 3/4;
     perspective: 1000px;
     cursor: pointer;
+}
+
+.s-gameboard-empty-slot {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 2px dashed rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    pointer-events: none;
 }
 
 @media (max-width: 768px) {

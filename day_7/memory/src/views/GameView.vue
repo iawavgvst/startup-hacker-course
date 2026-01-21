@@ -296,6 +296,7 @@ watch(() => route.query.difficulty, (newDifficulty) => {
                         background: white;
                         color: steelblue;
                         border: 2px solid steelblue;
+                        padding: 20px 30px;
 
                         &:hover {
                             background: steelblue;

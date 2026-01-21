@@ -4,7 +4,8 @@
         :class="{
         'card-flipped': isFlipped,
         'card-matched': isMatched,
-        'card-clickable': isClickable
+        'card-clickable': isClickable,
+        'card-invisible': !isVisible
         }"
         @click="handleClick"
     >
@@ -40,13 +41,17 @@ const props = defineProps({
     isClickable: {
         type: Boolean,
         default: true
+    },
+    isVisible: {
+      type: Boolean,
+      default: true
     }
 })
 
 const emit = defineEmits(['click']);
 
 const handleClick = () => {
-    if (props.isClickable) {
+    if (props.isClickable && props.isVisible) {
         emit('click');
     }
 }
