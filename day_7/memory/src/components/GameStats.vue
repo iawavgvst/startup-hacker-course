@@ -12,8 +12,8 @@
             </div>
 
             <div class="s-gamestats-item">
-                <div class="s-gamestats-item_stat-label">Карточек осталось:</div>
-                <div class="s-gamestats-item_stat-value">{{ remainingCards }} / {{ totalCards }}</div>
+                <div class="s-gamestats-item_stat-label">Найдено пар:</div>
+                <div class="s-gamestats-item_stat-value">{{ matchedPairs }} / {{ totalPairs }}</div>
             </div>
 
             <div class="s-gamestats-item">
@@ -24,7 +24,7 @@
 
         <div class="s-gamestats-status" v-if="gameFinished">
             <div class="s-gamestats_status-message success" v-if="remainingCards === 0">
-                Поздравляем! Ты завершил игру!
+                Для еще одного раунда нажми на «Играть снова» ↓
             </div>
             <div class="s-gamestats-score-display" v-if="score">
                 <div class="s-gamestats_score-label">Твоя оценка:</div>
@@ -86,6 +86,19 @@ const formattedTime = computed(() => {
     const minutes = Math.floor(props.gameTime / 60);
     const seconds = props.gameTime % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+});
+
+const totalPairs = computed(() => {
+    const config = {
+        easy: 6,
+        medium: 12,
+        hard: 18
+    };
+    return config[props.difficulty] || 6;
+});
+
+const matchedPairs = computed(() => {
+    return totalPairs.value - (props.remainingCards / 2);
 });
 </script>
 
